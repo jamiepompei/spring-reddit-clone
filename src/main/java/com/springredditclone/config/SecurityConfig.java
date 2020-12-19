@@ -10,7 +10,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 //csrf attacks occur when there are sessions and when we use cookies to authenticate session info
 //json web tokens for authorization so we can disable
     @Override
-    public void configure(HttpSecurity httpSecurity){
+    public void configure(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.csrf().disable()
                 .authorizeRequests()
                 .antMatchers("/api/auth/**")
