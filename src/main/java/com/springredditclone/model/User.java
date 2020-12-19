@@ -15,8 +15,8 @@ import java.time.Instant;
 
 import static javax.persistence.GenerationType.IDENTITY;
 
-@Entity
 @Data
+@Entity
 @NoArgsConstructor
 @AllArgsConstructor
 public class User {
