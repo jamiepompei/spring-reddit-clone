@@ -8,16 +8,24 @@ import com.springredditclone.model.VerificationToken;
 import com.springredditclone.repository.UserRepository;
 import com.springredditclone.repository.VerificationTokenRepository;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.Transactional;
+import java.util.Optional;
 import java.time.Instant;
 import java.util.UUID;
 
 @AllArgsConstructor
 @Service
+@Transactional
 public class AuthService {
 
     private final PasswordEncoder passwordEncoder;
@@ -26,7 +34,6 @@ public class AuthService {
     private final MailService mailService;
 
 
-    @Transactional
     public void signup(RegisterRequest registerRequest) throws SpringRedditException {
         User user = new User();
         user.setUsername((registerRequest.getUsername()));
