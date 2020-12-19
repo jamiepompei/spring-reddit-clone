@@ -9,6 +9,7 @@ import com.springredditclone.repository.UserRepository;
 import com.springredditclone.repository.VerificationTokenRepository;
 import lombok.AllArgsConstructor;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -20,37 +21,41 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
-import java.time.Instant;
 import java.util.UUID;
+
+import static com.springredditclone.Util.Constants.ACTIVATION_EMAIL;
+import static java.time.Instant.now;
 
 @AllArgsConstructor
 @Service
-@Transactional
+@Slf4j
 public class AuthService {
 
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
     private final VerificationTokenRepository verificationTokenRepository;
     private final MailService mailService;
+    private final MailContentBuilder mailContentBuilder;
 
-
+    @Transactional
     public void signup(RegisterRequest registerRequest) throws SpringRedditException {
         User user = new User();
         user.setUsername((registerRequest.getUsername()));
         user.setEmail(registerRequest.getEmail());
         user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
-        user.setCreated(Instant.now());
+        user.setCreated(now());
         user.setEnabled(false);
 
         userRepository.save(user);
 
         String token = generateVerificationToken(user);
+        String message = mailContentBuilder.build("Thank you for singing up to Spring Reddit, please click on the below url " +
+                "to activate your account : "
+        + ACTIVATION_EMAIL + "/" + token);
         //when user clicks on the URL, we take the token from the URL param, look it up in the DB, and
         //fetch the user who created the token, and enable the user
         mailService.sendMail(new NotificationEmail("Please Activate your Account", user.getEmail(),
-                "Thank you for signing up to Spring Reddit, " +
-                "please click on the below url to activate your account:" +
-                "http://localhost:8080/api/auth/accountVerification/" + token));
+                message));
     }
 
    private String generateVerificationToken(User user){
@@ -61,7 +66,24 @@ public class AuthService {
 
        verificationTokenRepository.save(verificationToken);
        return token;
+    }
 
+    private String encodePassword(String password){
+        return passwordEncoder.encode(password);
+    }
+
+    public void verifyAccount(String token) throws SpringRedditException {
+        Optional<VerificationToken> verificationTokenOptional = verificationTokenRepository.findByToken(token);
+        verificationTokenOptional.orElseThrow(() -> new SpringRedditException("Invalid Token"));
+        fetchUserAndEnable(verificationTokenOptional.get());
+    }
+
+    @Transactional
+    private void fetchUserAndEnable(VerificationToken verificationToken) throws SpringRedditException {
+        String username = verificationToken.getUser().getUsername();
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new SpringRedditException("User " + "Not Found with id - " + username));
+        user.setEnabled(true);
+        userRepository.save(user);
     }
 
 

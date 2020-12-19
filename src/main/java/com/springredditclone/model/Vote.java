@@ -10,6 +10,8 @@ import javax.persistence.*;
 
 import static javax.persistence.FetchType.LAZY;
 import static javax.persistence.GenerationType.IDENTITY;
+import static javax.persistence.GenerationType.SEQUENCE;
+
 @Data
 @Entity
 @Builder
@@ -18,7 +20,7 @@ import static javax.persistence.GenerationType.IDENTITY;
 public class Vote {
     @Id
     @GeneratedValue(strategy = IDENTITY)
-    private Long votedId;
+    private Long voteId;
     private VoteType voteType;
     @NotNull
     @ManyToOne(fetch = LAZY)

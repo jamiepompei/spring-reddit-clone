@@ -13,6 +13,7 @@ import javax.persistence.Entity;
 
 import static javax.persistence.FetchType.LAZY;
 import  static javax.persistence.GenerationType.IDENTITY;
+import static javax.persistence.GenerationType.SEQUENCE;
 
 @Data
 @Entity
