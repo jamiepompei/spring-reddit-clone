@@ -1,5 +1,7 @@
 package com.springredditclone.service;
 
+import com.springredditclone.dto.AuthenticationResponse;
+import com.springredditclone.dto.LoginRequest;
 import com.springredditclone.dto.RegisterRequest;
 import com.springredditclone.exceptions.SpringRedditException;
 import com.springredditclone.model.NotificationEmail;
@@ -7,15 +9,14 @@ import com.springredditclone.model.User;
 import com.springredditclone.model.VerificationToken;
 import com.springredditclone.repository.UserRepository;
 import com.springredditclone.repository.VerificationTokenRepository;
+import com.springredditclone.security.JwtProvider;
 import lombok.AllArgsConstructor;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,6 +37,8 @@ public class AuthService {
     private final VerificationTokenRepository verificationTokenRepository;
     private final MailService mailService;
     private final MailContentBuilder mailContentBuilder;
+    private final AuthenticationManager authenticationManager;
+    private final JwtProvider jwtProvider;
 
     @Transactional
     public void signup(RegisterRequest registerRequest) throws SpringRedditException {
@@ -47,7 +50,7 @@ public class AuthService {
         user.setEnabled(false);
 
         userRepository.save(user);
-
+        log.info("User Registered Successfully, Sending Authentication Email");
         String token = generateVerificationToken(user);
         String message = mailContentBuilder.build("Thank you for singing up to Spring Reddit, please click on the below url " +
                 "to activate your account : "
@@ -72,10 +75,18 @@ public class AuthService {
         return passwordEncoder.encode(password);
     }
 
+    public AuthenticationResponse login(LoginRequest loginRequest) throws SpringRedditException {
+        Authentication authenticate = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsername(),
+                loginRequest.getPassword()));
+        SecurityContextHolder.getContext().setAuthentication(authenticate);
+        String token = jwtProvider.generateToken(authenticate);
+        String authenticationToken = jwtProvider.generateToken(authenticate);
+        return new AuthenticationResponse(authenticationToken, loginRequest.getUsername());
+    }
+
     public void verifyAccount(String token) throws SpringRedditException {
         Optional<VerificationToken> verificationTokenOptional = verificationTokenRepository.findByToken(token);
-        verificationTokenOptional.orElseThrow(() -> new SpringRedditException("Invalid Token"));
-        fetchUserAndEnable(verificationTokenOptional.get());
+        fetchUserAndEnable(verificationTokenOptional.orElseThrow(() -> new SpringRedditException("invalid Token")));
     }
 
     @Transactional
