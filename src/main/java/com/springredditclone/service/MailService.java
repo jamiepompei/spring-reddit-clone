@@ -33,7 +33,6 @@ public class MailService {
         } catch (MailException e){
             log.error("Exception occurred when sending mail", e);
             throw new SpringRedditException("Exception occurred when sending mail to " + notificationEmail.getRecipient(), e);
-
         }
     }
 }

@@ -98,6 +98,6 @@ public class AuthService {
     }
 
 
-
-
+    public User getCurrentUser() {
+    }
 }
