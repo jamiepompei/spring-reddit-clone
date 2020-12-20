@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2020-12-20T11:51:43-0500",
+    date = "2020-12-20T13:09:08-0500",
     comments = "version: 1.3.1.Final, compiler: javac, environment: Java 1.8.0_221 (Oracle Corporation)"
 )
 @Component
@@ -32,7 +32,10 @@ public class PostMapperImpl implements PostMapper {
             post.url( postRequest.getUrl() );
         }
         if ( subreddit != null ) {
-            post.user( subreddit.getUser() );
+            post.subreddit( subreddit );
+        }
+        if ( user != null ) {
+            post.user( user );
         }
         post.createdDate( java.time.Instant.now() );
 
@@ -47,12 +50,12 @@ public class PostMapperImpl implements PostMapper {
 
         PostResponse postResponse = new PostResponse();
 
+        postResponse.setPostName( post.getPostName() );
+        postResponse.setDescription( post.getDescription() );
         postResponse.setId( post.getPostId() );
         postResponse.setUserName( postUserUsername( post ) );
-        postResponse.setSubredditName( postSubredditName( post ) );
-        postResponse.setPostName( post.getPostName() );
         postResponse.setUrl( post.getUrl() );
-        postResponse.setDescription( post.getDescription() );
+        postResponse.setSubredditName( postSubredditName( post ) );
 
         return postResponse;
     }

@@ -33,6 +33,13 @@ public class PostService {
     private final PostMapper postMapper;
 
 
+    @Transactional(readOnly = true)
+    public PostResponse getPost(Long id) throws PostNotFoundException {
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new PostNotFoundException(id.toString()));
+        return postMapper.mapToDto(post);
+    }
+
     public void save(PostRequest postRequest) throws SubredditNotFoundException {
         Subreddit subreddit = subredditRepository.findByName(postRequest.getSubredditName())
                 .orElseThrow(() -> new SubredditNotFoundException(postRequest.getSubredditName()));
@@ -41,7 +48,7 @@ public class PostService {
     }
 
     @Transactional(readOnly = true)
-    public PostResponse getResponse(Long id){
+    public PostResponse getResponse(Long id) throws PostNotFoundException {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new PostNotFoundException(id.toString()));
         return postMapper.mapToDto(post);
@@ -74,4 +81,6 @@ public class PostService {
                 .map(postMapper::mapToDto)
                 .collect(Collectors.toList());
     }
+
+
 }

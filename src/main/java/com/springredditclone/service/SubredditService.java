@@ -39,19 +39,6 @@ public class SubredditService {
                 .collect(Collectors.toList());
     }
 
-//    private SubredditDto mapToDto(Subreddit subreddit){
-//        return SubredditDto.builder().name(subreddit.getName())
-//                .id(subreddit.getId())
-//                .postCount(subreddit.getPosts().size())
-//                .build();
-//    }
-//
-//    private void mapSubredditDto(SubredditDto subredditDto){
-//        Subreddit.builder().name(subredditDto.getName())
-//                .description((subredditDto.getDescription()))
-//                .build();
-//    }
-
     public SubredditDto getSubreddit(Long id) throws SpringRedditException {
         Subreddit subreddit = subredditRepository.findById(id)
                 .orElseThrow(() -> new SpringRedditException("No subreddit found with id-" + id));
