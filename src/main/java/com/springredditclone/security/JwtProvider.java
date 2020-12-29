@@ -34,7 +34,7 @@ public class JwtProvider {
             InputStream resourceAsStream = getClass().getResourceAsStream("/springreddit.jks");
             keyStore.load(resourceAsStream, "secret".toCharArray());
         } catch (KeyStoreException | CertificateException | NoSuchAlgorithmException | IOException e){
-            throw new SpringRedditException(("Exception occurred while loading keystore"));
+            throw new SpringRedditException("Exception occurred while loading keystore", e);
         }
     }
 
