@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
     comments = "version: 1.3.1.Final, compiler: javac, environment: Java 1.8.0_221 (Oracle Corporation)"
 )
 @Component
-public class PostMapperImpl implements PostMapper {
+public class PostMapperImpl extends PostMapper {
 
     @Override
     public Post map(PostRequest postRequest, Subreddit subreddit, User user) {

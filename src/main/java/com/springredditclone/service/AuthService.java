@@ -2,9 +2,11 @@ package com.springredditclone.service;
 
 import com.springredditclone.dto.AuthenticationResponse;
 import com.springredditclone.dto.LoginRequest;
+import com.springredditclone.dto.RefreshTokenRequest;
 import com.springredditclone.dto.RegisterRequest;
 import com.springredditclone.exceptions.SpringRedditException;
 import com.springredditclone.model.NotificationEmail;
+import com.springredditclone.model.RefreshToken;
 import com.springredditclone.model.User;
 import com.springredditclone.model.VerificationToken;
 import com.springredditclone.repository.UserRepository;
@@ -22,6 +24,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -31,6 +34,7 @@ import static java.time.Instant.now;
 @AllArgsConstructor
 @Service
 @Slf4j
+@Transactional
 public class AuthService {
 
     private final PasswordEncoder passwordEncoder;
@@ -40,6 +44,7 @@ public class AuthService {
     private final MailContentBuilder mailContentBuilder;
     private final AuthenticationManager authenticationManager;
     private final JwtProvider jwtProvider;
+    private final RefreshTokenService refreshTokenService;
 
     @Transactional
     public void signup(RegisterRequest registerRequest) throws SpringRedditException {
@@ -51,7 +56,9 @@ public class AuthService {
         user.setEnabled(false);
 
         userRepository.save(user);
+
         log.info("User Registered Successfully, Sending Authentication Email");
+
         String token = generateVerificationToken(user);
         String message = mailContentBuilder.build("Thank you for singing up to Spring Reddit, please click on the below url " +
                 "to activate your account : "
@@ -81,13 +88,29 @@ public class AuthService {
                 loginRequest.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authenticate);
         String token = jwtProvider.generateToken(authenticate);
-        String authenticationToken = jwtProvider.generateToken(authenticate);
-        return new AuthenticationResponse(authenticationToken, loginRequest.getUsername());
+       return AuthenticationResponse.builder()
+               .authenticationToken(token)
+               .refreshToken(refreshTokenService.generateRefreshToken().getToken())
+               .expiresAt(Instant.now().plusMillis(jwtProvider.getJwtExpirationInMillis()))
+               .username(loginRequest.getUsername())
+               .build();
+    }
+
+    public AuthenticationResponse refreshToken(RefreshTokenRequest refreshTokenRequest) throws SpringRedditException {
+        refreshTokenService.validateRefreshToken(refreshTokenRequest.getRefreshToken());
+        String token = jwtProvider.generateTokenWithUserName(refreshTokenRequest.getUsername());
+            return AuthenticationResponse.builder()
+                .authenticationToken(token)
+                .refreshToken(refreshTokenRequest.getRefreshToken())
+
+                .expiresAt(Instant.now().plusMillis(jwtProvider.getJwtExpirationInMillis()))
+                        .username(refreshTokenRequest.getUsername())
+                        .build();
     }
 
     public void verifyAccount(String token) throws SpringRedditException {
-        Optional<VerificationToken> verificationTokenOptional = verificationTokenRepository.findByToken(token);
-        fetchUserAndEnable(verificationTokenOptional.orElseThrow(() -> new SpringRedditException("invalid Token")));
+        Optional<VerificationToken> verificationToken = verificationTokenRepository.findByToken(token);
+        fetchUserAndEnable(verificationToken.orElseThrow(() -> new SpringRedditException("invalid Token")));
     }
 
     @Transactional
@@ -98,7 +121,7 @@ public class AuthService {
         userRepository.save(user);
     }
 
-
+    @Transactional(readOnly =  true)
     public User getCurrentUser() {
         org.springframework.security.core.userdetails.User principal = (org.springframework.security.core.userdetails.User) SecurityContextHolder.
                 getContext().getAuthentication().getPrincipal();

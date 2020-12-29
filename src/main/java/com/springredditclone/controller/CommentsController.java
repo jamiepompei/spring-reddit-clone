@@ -1,6 +1,8 @@
 package com.springredditclone.controller;
 
 import com.springredditclone.dto.CommentsDto;
+import com.springredditclone.exceptions.PostNotFoundException;
+import com.springredditclone.exceptions.SpringRedditException;
 import com.springredditclone.service.CommentService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,7 +21,7 @@ public class CommentsController {
     private final CommentService commentService;
 
     @PostMapping
-    public ResponseEntity<?> createComment(@RequestBody CommentsDto commentsDto){
+    public ResponseEntity<?> createComment(@RequestBody CommentsDto commentsDto) throws SpringRedditException, PostNotFoundException {
         commentService.createComment(commentsDto);
         return new ResponseEntity<>(HttpStatus.CREATED);
 
