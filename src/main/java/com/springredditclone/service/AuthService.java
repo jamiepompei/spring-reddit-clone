@@ -15,6 +15,7 @@ import com.springredditclone.security.JwtProvider;
 import lombok.AllArgsConstructor;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -116,7 +117,7 @@ public class AuthService {
     @Transactional
     private void fetchUserAndEnable(VerificationToken verificationToken) throws SpringRedditException {
         String username = verificationToken.getUser().getUsername();
-        User user = userRepository.findByUsername(username).orElseThrow(() -> new SpringRedditException("User " + "Not Found with id - " + username));
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new SpringRedditException("User not found with username - " + username));
         user.setEnabled(true);
         userRepository.save(user);
     }
@@ -127,5 +128,10 @@ public class AuthService {
                 getContext().getAuthentication().getPrincipal();
         return userRepository.findByUsername(principal.getUsername())
                 .orElseThrow(() -> new UsernameNotFoundException("Username not found - " + principal.getUsername()));
+    }
+
+    public boolean isLoggedIn(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return !(authentication instanceof AnonymousAuthenticationToken) && authentication.isAuthenticated();
     }
 }
