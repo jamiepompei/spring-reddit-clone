@@ -1,9 +1,4 @@
-1. Look into Nodemailer & comparability with Angular
-2. Look into Forgot Password with NodeMailer
-
-1:01:37 timestamp in tutorial 
-
-
-Need to figure out this authentication business D; 
+Login Request returns 404 error most of the time and 500 error some of the time. Try re-generating the keystore file?
+->postman appends a %20 to the end of the endpoint?
 
 https://www.youtube.com/watch?v=DKlTBBuc32c&t=1s
