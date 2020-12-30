@@ -30,10 +30,10 @@ public abstract class PostMapper {
     public abstract Post map(PostRequest postRequest, Subreddit subreddit, User user);
 
     @Mapping(target = "id", source = "postId")
-    @Mapping(target = "commentCount", expression = "java(commentCount(post)")
+    @Mapping(target = "commentCount", expression = "java(commentCount(post))")
     @Mapping(target = "subredditName", source = "subreddit.name")
     @Mapping(target = "userName", source = "user.username")
-    @Mapping(target = "duraction", expression = "java(getDuration(post))")
+    @Mapping(target = "duration", expression = "java(getDuration(post))")
     public abstract PostResponse mapToDto(Post post);
 
     Integer commentCount(Post post){
